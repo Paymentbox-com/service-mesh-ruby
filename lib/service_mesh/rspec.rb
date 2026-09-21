@@ -11,7 +11,7 @@ require_relative "../service_mesh"
 #   RSpec.describe MyTransport do
 #     it_behaves_like "a service mesh transport" do
 #       let(:new_runtime)    { ->(config, map, endpoints:, subscribers:) { MyTransport::Runtime.new(config, map, endpoints:, subscribers:) } }
-#       let(:new_client)     { ->(config) { MyTransport::Client.new(config) } }
+#       let(:new_client)     { ->(config, map) { MyTransport::Client.new(config, map) } }
 #       let(:runtime_config) { {"deployment_group" => "test", ...transport keys...} }
 #       let(:client_config)  { {...transport keys...} }
 #       let(:route_target)   { ServiceMesh::Target.new(segments: %w[test echo], kind: :route) }
@@ -67,7 +67,7 @@ RSpec.shared_examples "a service mesh transport" do
     @conformance_runtimes.each { |rt| rt.stop(wait) }
   end
 
-  let(:client) { new_client.call(client_config) }
+  let(:client) { new_client.call(client_config, service_map) }
   after { client.close }
 
   describe "kind checks" do

@@ -73,7 +73,7 @@ RSpec.describe MyTransport do
     let(:new_runtime) do
       ->(config, map, endpoints:, subscribers:) { MyTransport::Runtime.new(config, map, endpoints:, subscribers:) }
     end
-    let(:new_client) { ->(config) { MyTransport::Client.new(config) } }
+    let(:new_client) { ->(config, map) { MyTransport::Client.new(config, map) } }
     let(:runtime_config) { {"deployment_group" => "test", "url" => url} }
     let(:client_config) { {"url" => url} }
     let(:route_target) { ServiceMesh::Target.new(segments: %w[test echo], kind: :route) }
