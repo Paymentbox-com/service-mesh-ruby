@@ -4,7 +4,11 @@ The Ruby contract for the
 [Service Mesh API Specification](https://github.com/Paymentbox-com/service-mesh-api),
 packaged as the gem `service_mesh`. It holds what every transport and every
 caller must agree on, and nothing that moves bytes. Transports are separate
-gems that depend on it and implement `Client` and `Runtime`.
+gems that depend on it and implement `Client` and `Runtime`. The
+[gRPC Service Mesh API](https://github.com/Paymentbox-com/grpc-service-mesh-api)
+is the protocol layer that generates code against this contract from protobuf
+definitions, through its Ruby library
+[grpc-service-mesh-ruby](https://github.com/Paymentbox-com/grpc-service-mesh-ruby).
 
 ## Install
 
