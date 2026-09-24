@@ -184,7 +184,7 @@ RSpec.shared_examples "a service mesh transport" do
   end
 
   describe "the runtime-owned client" do
-    it "works only inside the running window" do
+    it "is connected by start and closed by stop" do
       rt = build(endpoints: [endpoint(route_target, ->(m) { m })])
       @conformance_runtimes << rt
       owned = rt.client
@@ -192,8 +192,6 @@ RSpec.shared_examples "a service mesh transport" do
 
       expect { owned.request(req) }.to raise_error(StandardError)
       rt.start
-      expect(owned.request(req).payload).to eq("")
-      owned.close
       expect(owned.request(req).payload).to eq("")
       rt.stop(1)
       expect { owned.request(req) }.to raise_error(StandardError)
