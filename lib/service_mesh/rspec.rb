@@ -10,7 +10,7 @@ require_relative "../service_mesh"
 #
 #   RSpec.describe MyTransport do
 #     it_behaves_like "a service mesh transport" do
-#       let(:new_runtime)    { ->(config, map, endpoints:, subscribers:) { MyTransport::Runtime.new(config, map, endpoints:, subscribers:) } }
+#       let(:new_runtime)    { ->(client, config, endpoints:, subscribers:) { MyTransport::Runtime.new(client, config, endpoints:, subscribers:) } }
 #       let(:new_client)     { ->(config, map) { MyTransport::Client.new(config, map) } }
 #       let(:runtime_config) { {"deployment_group" => "test", ...transport keys...} }
 #       let(:client_config)  { {...transport keys...} }
@@ -43,7 +43,7 @@ RSpec.shared_examples "a service mesh transport" do
   end
 
   def build(config = runtime_config, endpoints: [], subscribers: [])
-    new_runtime.call(config, service_map, endpoints: endpoints, subscribers: subscribers)
+    new_runtime.call(new_client.call(client_config, service_map), config, endpoints: endpoints, subscribers: subscribers)
   end
 
   def serve(config = runtime_config, endpoints: [], subscribers: [])
@@ -183,18 +183,19 @@ RSpec.shared_examples "a service mesh transport" do
     end
   end
 
-  describe "the runtime-owned client" do
-    it "is connected by start and closed by stop" do
-      rt = build(endpoints: [endpoint(route_target, ->(m) { m })])
+  describe "the runtime's client" do
+    it "is the client the runtime was given, and stop closes it" do
+      given = new_client.call(client_config, service_map)
+      rt = new_runtime.call(given, runtime_config, endpoints: [endpoint(route_target, ->(m) { m })], subscribers: [])
       @conformance_runtimes << rt
-      owned = rt.client
       req = message(route_target)
 
-      expect { owned.request(req) }.to raise_error(StandardError)
+      expect(rt.client).to equal(given)
+      expect(rt.service_map).to equal(service_map)
       rt.start
-      expect(owned.request(req).payload).to eq("")
+      expect(given.request(req).payload).to eq("")
       rt.stop(1)
-      expect { owned.request(req) }.to raise_error(StandardError)
+      expect { given.request(req) }.to raise_error(StandardError)
     end
   end
 

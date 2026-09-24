@@ -76,7 +76,7 @@ require "service_mesh/rspec"
 RSpec.describe MyTransport do
   it_behaves_like "a service mesh transport" do
     let(:new_runtime) do
-      ->(config, map, endpoints:, subscribers:) { MyTransport::Runtime.new(config, map, endpoints:, subscribers:) }
+      ->(client, config, endpoints:, subscribers:) { MyTransport::Runtime.new(client, config, endpoints:, subscribers:) }
     end
     let(:new_client) { ->(config, map) { MyTransport::Client.new(config, map) } }
     let(:runtime_config) { {"deployment_group" => "test", "url" => url} }
@@ -90,7 +90,7 @@ end
 The suite covers kind checks, the deployment group requirement, request and
 reply with metadata both ways, publish, the consumer-group delivery
 permutations across two runtimes, a standalone client refusing requests after
-close, the runtime-owned client connected by start and closed by stop, the lifecycle state machine, and drain completing and expiring.
+close, the runtime's client being the one it was given and closed by stop, the lifecycle state machine, and drain completing and expiring.
 Anything that names a transport's own errors, config keys, or address syntax
 stays in the transport's specs.
 
