@@ -13,7 +13,7 @@ module ServiceMesh
   # segments into its own address; that string never leaves the transport.
   Target = Data.define(:segments, :kind, :metadata) do
     def initialize(segments:, kind:, metadata: {})
-      raise ArgumentError, "kind must be one of #{KINDS.inspect}, got #{kind.inspect}" unless KINDS.include?(kind)
+      raise KindMismatch, "kind must be one of #{KINDS.inspect}, got #{kind.inspect}" unless KINDS.include?(kind)
 
       super(segments: Array(segments).map(&:to_s).freeze, kind: kind, metadata: metadata.to_h.freeze)
     end

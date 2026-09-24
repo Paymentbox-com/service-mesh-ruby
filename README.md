@@ -26,7 +26,8 @@ Requires Ruby 3.3 or newer. The gem has no runtime dependencies.
   (`target`, `metadata`, `payload`), `Endpoint` and `Subscriber` (`target`,
   `metadata`, `handler`). Kinds are `:route` and `:topic`. `Message#payload`
   is always `Encoding::BINARY`. `Target#same_channel?` compares segments and
-  kind and ignores metadata.
+  kind and ignores metadata. A `Target` built with a kind outside the two
+  raises `KindMismatch`.
 - The configuration keys the specification defines: `DEPLOYMENT_GROUP_KEY`,
   `CONSUMER_GROUP_KEY`, and the value `CONSUMER_GROUP_NONE`.
 - The contract errors, under `ServiceMesh::Error`: `KindMismatch`,

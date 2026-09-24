@@ -8,7 +8,7 @@ RSpec.describe ServiceMesh::Target do
   end
 
   it "rejects an unknown kind" do
-    expect { described_class.new(segments: %w[a], kind: :queue) }.to raise_error(ArgumentError)
+    expect { described_class.new(segments: %w[a], kind: :queue) }.to raise_error(ServiceMesh::KindMismatch)
   end
 
   it "coerces segments to frozen strings" do
