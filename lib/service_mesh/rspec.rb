@@ -172,6 +172,17 @@ RSpec.shared_examples "a service mesh transport" do
     end
   end
 
+  describe "a standalone client" do
+    it "accepts no requests after close" do
+      serve(endpoints: [endpoint(route_target, ->(m) { m })])
+      own = new_client.call(client_config, service_map)
+
+      expect(own.request(message(route_target)).payload).to eq("")
+      own.close
+      expect { own.request(message(route_target)) }.to raise_error(StandardError)
+    end
+  end
+
   describe "the runtime-owned client" do
     it "works only inside the running window" do
       rt = build(endpoints: [endpoint(route_target, ->(m) { m })])

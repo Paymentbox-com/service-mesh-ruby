@@ -88,8 +88,8 @@ end
 
 The suite covers kind checks, the deployment group requirement, request and
 reply with metadata both ways, publish, the consumer-group delivery
-permutations across two runtimes, the runtime-owned client outside the running
-window, the lifecycle state machine, and drain completing and expiring.
+permutations across two runtimes, a standalone client refusing requests after
+close, the runtime-owned client outside the running window, the lifecycle state machine, and drain completing and expiring.
 Anything that names a transport's own errors, config keys, or address syntax
 stays in the transport's specs.
 
