@@ -43,9 +43,6 @@ conformance suite.
 - NATS: [service-mesh-nats-ruby](https://github.com/Paymentbox-com/service-mesh-nats-ruby),
   gem `service_mesh_nats`.
 
-The Go counterpart of this gem is
-[service-mesh-go](https://github.com/Paymentbox-com/service-mesh-go).
-
 ## Usage
 
 A transport that implements Client and Runtime according to the specification will used the
