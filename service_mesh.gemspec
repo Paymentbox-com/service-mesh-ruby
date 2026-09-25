@@ -6,7 +6,7 @@ Gem::Specification.new do |spec|
   spec.name = "service_mesh"
   spec.version = ServiceMesh::VERSION
   spec.authors = ["Bryant Morrill", "Paymentbox"]
-  spec.email = ["bmorrill@pmtbox.com"]
+  spec.email = ["bryantreadmorrill@gmail.com"]
   spec.summary = "Ruby contract for the Service Mesh API Specification"
   spec.homepage = "https://github.com/Paymentbox-com/service-mesh-ruby"
   spec.license = "MIT"
