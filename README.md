@@ -4,11 +4,11 @@ The Ruby contract for the
 [Service Mesh API Specification](https://github.com/Paymentbox-com/service-mesh-api),
 packaged as the gem `service_mesh`. It holds what every transport and every
 caller must agree on, and nothing that moves bytes. Transports are separate
-gems that depend on it and implement `Client` and `Runtime`. The
-[gRPC Service Mesh API](https://github.com/Paymentbox-com/grpc-service-mesh-api)
-is the protocol layer that generates code against this contract from protobuf
-definitions, through its Ruby library
-[grpc-service-mesh-ruby](https://github.com/Paymentbox-com/grpc-service-mesh-ruby).
+gems that depend on it and implement `Client` and `Runtime`.
+
+The [gRPC Service Mesh API](https://github.com/Paymentbox-com/grpc-service-mesh-api) is a protocol layer that generates code against this contract from protobuf
+definitions, through its Ruby library [grpc-service-mesh-ruby](https://github.com/Paymentbox-com/grpc-service-mesh-ruby). Other protocol layers may be implemented 
+to do the same. 
 
 ## Install
 
@@ -19,19 +19,18 @@ gem "service_mesh"
 
 Requires Ruby 3.3 or newer. The gem has no runtime dependencies.
 
-## What it fixes
+## What it Implements
 
-- The value types from the specification, as `Data`: `ServiceMesh::Target`
-  (`segments`, `kind`, `metadata`), `ServiceMap` (`targets`), `Message`
-  (`target`, `metadata`, `payload`), `Endpoint` and `Subscriber` (`target`,
-  `metadata`, `handler`). Kinds are `:route` and `:topic`. `Message#payload`
-  is always `Encoding::BINARY`. `Target#same_channel?` compares segments and
-  kind and ignores metadata. A `Target` built with a kind outside the two
+- The value types from the specification: `ServiceMesh::Target`, `ServiceMesh::ServiceMap`, 
+  `ServiceMesh::Message`, `ServiceMesh::Endpoint` and `ServiceMesh::Subscriber`.
+- Target Kinds are implemented as `:route` and `:topic`. A `Target` built with a kind outside the two
   raises `KindMismatch`.
+- `Message#payload` is always `Encoding::BINARY`.
+- `Target#same_channel?` compares segments and kind and ignores metadata. 
 - The configuration keys the specification defines: `DEPLOYMENT_GROUP_KEY`,
   `CONSUMER_GROUP_KEY`, and the value `CONSUMER_GROUP_NONE`.
-- The contract errors, under `ServiceMesh::Error`: `KindMismatch`,
-  `InvalidTarget`, `NoDeploymentGroup`.
+- The errors defined by the specification as `ServiceMesh::Error`: `ServiceMesh::KindMismatch`,
+  `ServiceMesh::InvalidTarget`, `ServiceMesh::NoDeploymentGroup`.
 - A conformance suite a transport runs against its own `Client` and
   `Runtime`.
 
@@ -49,26 +48,24 @@ The Go counterpart of this gem is
 
 ## Usage
 
-Code written against the contract works with any transport. It receives a
-client and a target and never learns which transport is underneath.
+A transport that implements Client and Runtime according to the specification will used the
+types defined here.
 
 ```ruby
 require "service_mesh"
 
-LOOKUP = ServiceMesh::Target.new(segments: %w[accounts lookup], kind: :route)
+TARGET = ServiceMesh::Target.new(segments: %w[accounts lookup], kind: :route)
 
 def lookup(client, id)
-  reply = client.request(ServiceMesh::Message.new(target: LOOKUP, payload: id))
+  reply = client.request(ServiceMesh::Message.new(target: TARGET, payload: id))
   reply.payload
 end
 ```
 
-The transport is chosen where the client is built, once per process.
-
 ## Conformance
 
-A transport includes the shared examples from its own spec suite and supplies
-constructors and a pair of valid targets:
+A transport implemented to use these types should include the shared examples defined in this
+library in its own spec suite and supply its own constructors and a pair of valid targets:
 
 ```ruby
 require "service_mesh/rspec"
