@@ -5,7 +5,8 @@ require_relative "lib/service_mesh/version"
 Gem::Specification.new do |spec|
   spec.name = "service_mesh"
   spec.version = ServiceMesh::VERSION
-  spec.authors = ["Paymentbox"]
+  spec.authors = ["Bryant Morrill", "Paymentbox"]
+  spec.email = ["bmorrill@pmtbox.com"]
   spec.summary = "Ruby contract for the Service Mesh API Specification"
   spec.homepage = "https://github.com/Paymentbox-com/service-mesh-ruby"
   spec.license = "MIT"
