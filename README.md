@@ -6,10 +6,6 @@ packaged as the gem `service_mesh`. It holds what every transport and every
 caller must agree on, and nothing that moves bytes. Transports are separate
 gems that depend on it and implement `Client` and `Runtime`.
 
-The [gRPC Service Mesh API](https://github.com/Paymentbox-com/grpc-service-mesh-api) is a protocol layer that generates code against this contract from protobuf
-definitions, through its Ruby library [grpc-service-mesh-ruby](https://github.com/Paymentbox-com/grpc-service-mesh-ruby). Other protocol layers may be implemented 
-to do the same. 
-
 ## Install
 
 ```ruby
@@ -37,11 +33,6 @@ Requires Ruby 3.3 or newer. The gem has no runtime dependencies.
 `Client` and `Runtime` are duck types. The specification names their methods;
 a transport satisfies the contract by responding to them and by passing the
 conformance suite.
-
-## Transports
-
-- NATS: [service-mesh-nats-ruby](https://github.com/Paymentbox-com/service-mesh-nats-ruby),
-  gem `service_mesh_nats`.
 
 ## Usage
 

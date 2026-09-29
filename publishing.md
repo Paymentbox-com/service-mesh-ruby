@@ -5,7 +5,7 @@ from a local checkout. The account that pushes is an owner of the gem, and
 rubygems.org asks for its MFA code on every push because the gemspec sets
 `rubygems_mfa_required`.
 
-`service_mesh` has no dependency on the other mesh gems, so it is published first: `service_mesh_nats` and `grpc_service_mesh` depend on it.
+A gem that depends on `service_mesh` can only be installed once the `service_mesh` version it requires is on rubygems.org, so a new `service_mesh` version is published before the gems that need it.
 
 ## One-time setup
 
