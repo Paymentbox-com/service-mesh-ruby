@@ -5,9 +5,11 @@ from a local checkout. The account that pushes is an owner of the gem, and
 rubygems.org asks for its MFA code on every push because the gemspec sets
 `rubygems_mfa_required`.
 
-A gem that depends on `service_mesh` can only be installed once the `service_mesh` version it requires is on rubygems.org, so a new `service_mesh` version is published before the gems that need it.
+A gem that depends on `service_mesh` can only be installed once the
+`service_mesh` version it requires is on rubygems.org, so a new `service_mesh`
+version is published before the gems that need it.
 
-## One-time setup
+## One-Time Setup
 
 ```sh
 gem signin
@@ -15,7 +17,7 @@ gem signin
 
 This stores an API key in `~/.gem/credentials`.
 
-## Releasing a version
+## Releasing a Version
 
 1. Run `just bump patch`, `just bump minor`, or `just bump major` to set the new
    version in `lib/service_mesh/version.rb` and commit that file, then push `master`.
@@ -35,7 +37,7 @@ This stores an API key in `~/.gem/credentials`.
 A pushed version is permanent. It can be yanked with `gem yank service_mesh -v X.Y.Z`,
 but that version number can never be pushed again.
 
-## Adding an owner
+## Adding an Owner
 
 ```sh
 gem owner service_mesh --add someone@example.com

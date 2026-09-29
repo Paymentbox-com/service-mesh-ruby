@@ -17,26 +17,26 @@ Requires Ruby 3.3 or newer. The gem has no runtime dependencies.
 
 ## What it Implements
 
-- The value types from the specification: `ServiceMesh::Target`, `ServiceMesh::ServiceMap`, 
-  `ServiceMesh::Message`, `ServiceMesh::Endpoint` and `ServiceMesh::Subscriber`.
+- The value types from the specification: `ServiceMesh::Target`, `ServiceMesh::ServiceMap`,
+  `ServiceMesh::Message`, `ServiceMesh::Endpoint`, and `ServiceMesh::Subscriber`.
 - Target Kinds are implemented as `:route` and `:topic`. A `Target` built with a kind outside the two
   raises `KindMismatch`.
 - `Message#payload` is always `Encoding::BINARY`.
-- `Target#same_channel?` compares segments and kind and ignores metadata. 
+- `Target#same_channel?` compares segments and kind and ignores metadata.
 - The configuration keys the specification defines: `DEPLOYMENT_GROUP_KEY`,
   `CONSUMER_GROUP_KEY`, and the value `CONSUMER_GROUP_NONE`.
 - The errors defined by the specification as `ServiceMesh::Error`: `ServiceMesh::KindMismatch`,
-  `ServiceMesh::InvalidTarget`, `ServiceMesh::NoDeploymentGroup`.
+  `ServiceMesh::InvalidTarget`, and `ServiceMesh::NoDeploymentGroup`.
 - A conformance suite a transport runs against its own `Client` and
   `Runtime`.
 
-`Client` and `Runtime` are duck types. The specification names their methods;
-a transport satisfies the contract by responding to them and by passing the
+`Client` and `Runtime` are duck types. The specification names their methods,
+and a transport satisfies the contract by responding to them and by passing the
 conformance suite.
 
 ## Usage
 
-A transport that implements Client and Runtime according to the specification will used the
+A transport that implements `Client` and `Runtime` according to the specification uses the
 types defined here.
 
 ```ruby
@@ -75,7 +75,8 @@ end
 The suite covers kind checks, the deployment group requirement, request and
 reply with metadata both ways, publish, the consumer-group delivery
 permutations across two runtimes, a standalone client refusing requests after
-close, the runtime's client being the one it was given and closed by stop, the lifecycle state machine, and drain completing and expiring.
+close, the runtime's client being the one it was given and closed by stop, the
+lifecycle state machine, and drain completing and expiring.
 Anything that names a transport's own errors, config keys, or address syntax
 stays in the transport's specs.
 
@@ -86,6 +87,10 @@ mise install
 just install
 just check      # lint, test, build
 ```
+
+Releasing is described in [publishing.md](publishing.md). `just bump patch`,
+`just bump minor`, or `just bump major` raises the version in
+`lib/service_mesh/version.rb` and commits that file.
 
 ## Tests
 
