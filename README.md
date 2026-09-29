@@ -1,8 +1,8 @@
 # service-mesh-ruby
 
-The Ruby contract for the
-[Service Mesh API Specification](https://github.com/Paymentbox-com/service-mesh-api),
-packaged as the gem `service_mesh`. It holds what every transport and every
+service-mesh-ruby is the Ruby contract for the
+[Service Mesh API Specification](https://github.com/Paymentbox-com/service-mesh-api).
+It is packaged as the gem `service_mesh`. It holds what every transport and every
 caller must agree on, and nothing that moves bytes. Transports are separate
 gems that depend on it and implement `Client` and `Runtime`.
 
@@ -72,11 +72,18 @@ RSpec.describe MyTransport do
 end
 ```
 
-The suite covers kind checks, the deployment group requirement, request and
-reply with metadata both ways, publish, the consumer-group delivery
-permutations across two runtimes, a standalone client refusing requests after
-close, the runtime's client being the one it was given and closed by stop, the
-lifecycle state machine, and drain completing and expiring.
+The suite covers:
+
+- kind checks
+- the deployment group requirement
+- request and reply with metadata both ways
+- publish
+- the consumer-group delivery permutations across two runtimes
+- a standalone client refusing requests after close
+- the runtime's client being the one it was given and closed by stop
+- the lifecycle state machine
+- drain completing and expiring
+
 Anything that names a transport's own errors, config keys, or address syntax
 stays in the transport's specs.
 
@@ -86,14 +93,9 @@ stays in the transport's specs.
 mise install
 just install
 just check      # lint, test, build
+just test       # tests only
 ```
 
 Releasing is described in [publishing.md](publishing.md). `just bump patch`,
 `just bump minor`, or `just bump major` raises the version in
 `lib/service_mesh/version.rb` and commits that file.
-
-## Tests
-
-```
-just test
-```
