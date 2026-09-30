@@ -23,8 +23,9 @@ Requires Ruby 3.3 or newer. The gem has no runtime dependencies.
   raises `KindMismatch`.
 - `Message#payload` is always `Encoding::BINARY`.
 - `Target#same_channel?` compares segments and kind and ignores metadata.
-- The configuration keys the specification defines: `DEPLOYMENT_GROUP_KEY`,
-  `CONSUMER_GROUP_KEY`, and the value `CONSUMER_GROUP_NONE`.
+- The configuration keys the specification defines. `DEPLOYMENT_GROUP_KEY` is runtime
+  configuration. `CONSUMER_GROUP_KEY`, with the value `CONSUMER_GROUP_NONE`, is `Endpoint` and
+  `Subscriber` metadata.
 - The errors defined by the specification as `ServiceMesh::Error`: `ServiceMesh::KindMismatch`,
   `ServiceMesh::InvalidTarget`, and `ServiceMesh::NoDeploymentGroup`.
 - A conformance suite a transport runs against its own `Client` and

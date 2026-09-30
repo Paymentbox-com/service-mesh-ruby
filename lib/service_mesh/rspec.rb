@@ -161,14 +161,18 @@ RSpec.shared_examples "a service mesh transport" do
       end
     end
 
-    it "honours a group set on the target rather than the binding" do
+    it "ignores a group set on the target, which carries none" do
       count = Queue.new
       %w[a b].each do |group|
         t = ServiceMesh::Target.new(segments: topic_target.segments, kind: :topic, metadata: {ServiceMesh::CONSUMER_GROUP_KEY => group})
         serve(config_for("same"), subscribers: [subscriber(t, ->(_) { count << true })])
       end
+
       client.publish(message(topic_target))
-      wait_until { count.size == 2 }
+
+      wait_until { count.size >= 1 }
+      sleep 0.1 # let an unwanted extra delivery show up
+      expect(count.size).to eq(1)
     end
   end
 

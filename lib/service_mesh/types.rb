@@ -4,7 +4,10 @@ module ServiceMesh
   KINDS = %i[route topic].freeze
 
   # Configuration keys the specification defines. Everything else belongs to
-  # a transport.
+  # a transport. DEPLOYMENT_GROUP_KEY is runtime configuration, and nothing
+  # else carries it. CONSUMER_GROUP_KEY is Endpoint and Subscriber metadata;
+  # when it is unset or empty, the runtime's deployment group applies, and
+  # CONSUMER_GROUP_NONE means no group. A Target carries neither.
   DEPLOYMENT_GROUP_KEY = "deployment_group"
   CONSUMER_GROUP_KEY = "consumer_group"
   CONSUMER_GROUP_NONE = "none"
