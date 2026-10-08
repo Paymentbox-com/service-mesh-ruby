@@ -1,5 +1,7 @@
 # service-mesh-ruby
 
+This version implements the Service Mesh API Specification v0.4.0.
+
 service-mesh-ruby is the Ruby contract for the
 [Service Mesh API Specification](https://github.com/Paymentbox-com/service-mesh-api).
 It is packaged as the gem `service_mesh`. It holds what every transport and every
@@ -23,9 +25,10 @@ Requires Ruby 3.3 or newer. The gem has no runtime dependencies.
   raises `KindMismatch`.
 - `Message#payload` is always `Encoding::BINARY`.
 - `Target#same_channel?` compares segments and kind and ignores metadata.
-- The configuration keys the specification defines. `DEPLOYMENT_GROUP_KEY` is runtime
-  configuration. `CONSUMER_GROUP_KEY`, with the value `CONSUMER_GROUP_NONE`, is `Endpoint` and
-  `Subscriber` metadata.
+- The configuration key the specification defines, `DEPLOYMENT_GROUP_KEY`, which is runtime
+  configuration.
+- The consumer group is the `consumer_group` member of `Endpoint` and `Subscriber`, defaulting to
+  `nil`. `CONSUMER_GROUP_NONE` is the value for no group.
 - The reserved metadata prefix `RESERVED_PREFIX` (`Mesh-`).
 - The metadata keys the specification defines: `HANDLER_ERROR_KEY`, `TIMEOUT_KEY`, `DEADLINE_KEY`,
   `DELIVERY_ATTEMPT_KEY`, and `MESSAGE_ID_KEY`.
@@ -77,16 +80,18 @@ end
 ```
 
 A transport that needs its own settings for the suite to pass supplies any of
-four optional lets, each defaulting to an empty Hash:
+five optional lets, each defaulting to an empty Hash:
 
 ```ruby
+let(:target_metadata) { {...} }     # merged under the metadata of every Target the suite builds
 let(:endpoint_metadata) { {...} }   # merged under the metadata of every Endpoint the suite builds
 let(:subscriber_metadata) { {...} } # merged under the metadata of every Subscriber the suite builds
 let(:request_options) { {...} }     # the options of every request the suite makes
 let(:publish_options) { {...} }     # the options of every publish the suite makes
 ```
 
-Metadata an example sets itself wins over `endpoint_metadata` and `subscriber_metadata`.
+Metadata an example sets itself wins over `target_metadata`, `endpoint_metadata`, and
+`subscriber_metadata`.
 
 The suite covers:
 

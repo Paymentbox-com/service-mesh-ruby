@@ -18,6 +18,7 @@ require_relative "../service_mesh"
 #       let(:topic_target)   { ServiceMesh::Target.new(segments: %w[test event], kind: :topic) }
 #
 #       # Optional, each defaulting to an empty Hash.
+#       let(:target_metadata)     { {...} } # merged under the metadata of each Target the suite builds
 #       let(:endpoint_metadata)   { {...} } # merged under each Endpoint's metadata
 #       let(:subscriber_metadata) { {...} } # merged under each Subscriber's metadata
 #       let(:request_options)     { {...} } # options for every request
@@ -31,17 +32,22 @@ require_relative "../service_mesh"
 RSpec.shared_examples "a service mesh transport" do
   let(:service_map) { ServiceMesh::ServiceMap.new }
   let(:wait) { 3 }
+  let(:target_metadata) { {} }
   let(:endpoint_metadata) { {} }
   let(:subscriber_metadata) { {} }
   let(:request_options) { {} }
   let(:publish_options) { {} }
 
+  def target(segments, kind, metadata: {})
+    ServiceMesh::Target.new(segments: segments, kind: kind, metadata: target_metadata.merge(metadata))
+  end
+
   def endpoint(target, handler, metadata: {})
     ServiceMesh::Endpoint.new(target: target, handler: handler, metadata: endpoint_metadata.merge(metadata))
   end
 
-  def subscriber(target, handler, metadata: {})
-    ServiceMesh::Subscriber.new(target: target, handler: handler, metadata: subscriber_metadata.merge(metadata))
+  def subscriber(target, handler, consumer_group: nil, metadata: {})
+    ServiceMesh::Subscriber.new(target: target, handler: handler, consumer_group: consumer_group, metadata: subscriber_metadata.merge(metadata))
   end
 
   def request(msg, via: client)
@@ -156,19 +162,19 @@ RSpec.shared_examples "a service mesh transport" do
   end
 
   describe "consumer groups" do
-    none = {ServiceMesh::CONSUMER_GROUP_KEY => ServiceMesh::CONSUMER_GROUP_NONE}
-    shared = {ServiceMesh::CONSUMER_GROUP_KEY => "order-consumers"}
+    none = ServiceMesh::CONSUMER_GROUP_NONE
+    shared = "order-consumers"
 
     [
-      ["same deployment, key absent: one instance handles it", %w[billing billing], [{}, {}], 1],
-      ["different deployments, key absent: each deployment handles it", %w[billing audit], [{}, {}], 2],
+      ["same deployment, group unset: one instance handles it", %w[billing billing], [nil, nil], 1],
+      ["different deployments, group unset: each deployment handles it", %w[billing audit], [nil, nil], 2],
       ["same deployment, none: every instance handles it", %w[billing billing], [none, none], 2],
       ["different deployments, shared named group: one instance handles it", %w[billing audit], [shared, shared], 1]
-    ].each do |name, groups, metadata, want|
+    ].each do |name, groups, consumer_groups, want|
       it name do
         count = Queue.new
         2.times do |i|
-          serve(config_for(groups[i]), subscribers: [subscriber(topic_target, ->(_) { count << true }, metadata: metadata[i])])
+          serve(config_for(groups[i]), subscribers: [subscriber(topic_target, ->(_) { count << true }, consumer_group: consumer_groups[i])])
         end
 
         publish(message(topic_target))
@@ -182,7 +188,7 @@ RSpec.shared_examples "a service mesh transport" do
     it "ignores a group set on the target, which carries none" do
       count = Queue.new
       %w[a b].each do |group|
-        t = ServiceMesh::Target.new(segments: topic_target.segments, kind: :topic, metadata: {ServiceMesh::CONSUMER_GROUP_KEY => group})
+        t = target(topic_target.segments, :topic, metadata: {"consumer_group" => group})
         serve(config_for("same"), subscribers: [subscriber(t, ->(_) { count << true })])
       end
 
