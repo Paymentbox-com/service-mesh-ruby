@@ -16,6 +16,12 @@ require_relative "../service_mesh"
 #       let(:client_config)  { {...transport keys...} }
 #       let(:route_target)   { ServiceMesh::Target.new(segments: %w[test echo], kind: :route) }
 #       let(:topic_target)   { ServiceMesh::Target.new(segments: %w[test event], kind: :topic) }
+#
+#       # Optional, each defaulting to an empty Hash.
+#       let(:endpoint_metadata)   { {...} } # merged under each Endpoint's metadata
+#       let(:subscriber_metadata) { {...} } # merged under each Subscriber's metadata
+#       let(:request_options)     { {...} } # options for every request
+#       let(:publish_options)     { {...} } # options for every publish
 #     end
 #   end
 #
@@ -25,13 +31,25 @@ require_relative "../service_mesh"
 RSpec.shared_examples "a service mesh transport" do
   let(:service_map) { ServiceMesh::ServiceMap.new }
   let(:wait) { 3 }
+  let(:endpoint_metadata) { {} }
+  let(:subscriber_metadata) { {} }
+  let(:request_options) { {} }
+  let(:publish_options) { {} }
 
   def endpoint(target, handler, metadata: {})
-    ServiceMesh::Endpoint.new(target: target, handler: handler, metadata: metadata)
+    ServiceMesh::Endpoint.new(target: target, handler: handler, metadata: endpoint_metadata.merge(metadata))
   end
 
   def subscriber(target, handler, metadata: {})
-    ServiceMesh::Subscriber.new(target: target, handler: handler, metadata: metadata)
+    ServiceMesh::Subscriber.new(target: target, handler: handler, metadata: subscriber_metadata.merge(metadata))
+  end
+
+  def request(msg, via: client)
+    via.request(msg, request_options)
+  end
+
+  def publish(msg, via: client)
+    via.publish(msg, publish_options)
   end
 
   def message(target, metadata: {}, payload: "")
@@ -72,11 +90,11 @@ RSpec.shared_examples "a service mesh transport" do
 
   describe "kind checks" do
     it "rejects a request to a topic" do
-      expect { client.request(message(topic_target)) }.to raise_error(ServiceMesh::KindMismatch)
+      expect { request(message(topic_target)) }.to raise_error(ServiceMesh::KindMismatch)
     end
 
     it "rejects a publish to a route" do
-      expect { client.publish(message(route_target)) }.to raise_error(ServiceMesh::KindMismatch)
+      expect { publish(message(route_target)) }.to raise_error(ServiceMesh::KindMismatch)
     end
 
     it "rejects an endpoint on a topic" do
@@ -107,7 +125,7 @@ RSpec.shared_examples "a service mesh transport" do
         message(topic_target, metadata: {"Reply-Key" => "reply-value"}, payload: m.payload.upcase)
       })])
 
-      reply = client.request(message(route_target, metadata: {"Request-Key" => "request-value"}, payload: "hello"))
+      reply = request(message(route_target, metadata: {"Request-Key" => "request-value"}, payload: "hello"))
 
       expect(seen.target.same_channel?(route_target)).to be(true)
       expect(seen.metadata["Request-Key"]).to eq("request-value")
@@ -119,7 +137,7 @@ RSpec.shared_examples "a service mesh transport" do
 
     it "carries an empty payload with no metadata" do
       serve(endpoints: [endpoint(route_target, ->(m) { m })])
-      reply = client.request(message(route_target))
+      reply = request(message(route_target))
       expect([reply.payload, reply.metadata]).to eq(["", {}])
     end
   end
@@ -129,7 +147,7 @@ RSpec.shared_examples "a service mesh transport" do
       got = Queue.new
       serve(subscribers: [subscriber(topic_target, ->(m) { got << m })])
 
-      client.publish(message(topic_target, metadata: {"Event-Id" => "42"}, payload: "created"))
+      publish(message(topic_target, metadata: {"Event-Id" => "42"}, payload: "created"))
 
       m = Timeout.timeout(wait) { got.pop }
       expect(m.target.same_channel?(topic_target)).to be(true)
@@ -153,7 +171,7 @@ RSpec.shared_examples "a service mesh transport" do
           serve(config_for(groups[i]), subscribers: [subscriber(topic_target, ->(_) { count << true }, metadata: metadata[i])])
         end
 
-        client.publish(message(topic_target))
+        publish(message(topic_target))
 
         wait_until { count.size >= want }
         sleep 0.1 # let an unwanted extra delivery show up
@@ -168,7 +186,7 @@ RSpec.shared_examples "a service mesh transport" do
         serve(config_for("same"), subscribers: [subscriber(t, ->(_) { count << true })])
       end
 
-      client.publish(message(topic_target))
+      publish(message(topic_target))
 
       wait_until { count.size >= 1 }
       sleep 0.1 # let an unwanted extra delivery show up
@@ -181,9 +199,9 @@ RSpec.shared_examples "a service mesh transport" do
       serve(endpoints: [endpoint(route_target, ->(m) { m })])
       own = new_client.call(client_config, service_map)
 
-      expect(own.request(message(route_target)).payload).to eq("")
+      expect(request(message(route_target), via: own).payload).to eq("")
       own.close
-      expect { own.request(message(route_target)) }.to raise_error(StandardError)
+      expect { request(message(route_target), via: own) }.to raise_error(StandardError)
     end
   end
 
@@ -197,9 +215,9 @@ RSpec.shared_examples "a service mesh transport" do
       expect(rt.client).to equal(given)
       expect(rt.service_map).to equal(service_map)
       rt.start
-      expect(given.request(req).payload).to eq("")
+      expect(request(req, via: given).payload).to eq("")
       rt.stop(1)
-      expect { given.request(req) }.to raise_error(StandardError)
+      expect { request(req, via: given) }.to raise_error(StandardError)
     end
   end
 
@@ -234,7 +252,7 @@ RSpec.shared_examples "a service mesh transport" do
         message(route_target, payload: "done")
       })])
 
-      reply = Thread.new { client.request(message(route_target)) }
+      reply = Thread.new { request(message(route_target)) }
       @conformance_threads << reply
       Timeout.timeout(wait) { entered.pop }
 
@@ -256,7 +274,7 @@ RSpec.shared_examples "a service mesh transport" do
         message(route_target)
       })])
 
-      @conformance_threads << Thread.new { client.request(message(route_target)) rescue nil } # rubocop:disable Style/RescueModifier
+      @conformance_threads << Thread.new { request(message(route_target)) rescue nil } # rubocop:disable Style/RescueModifier
       Timeout.timeout(wait) { entered.pop }
 
       expect(rt.stop(0.1)).to be(false)
