@@ -3,13 +3,12 @@
 module ServiceMesh
   KINDS = %i[route topic].freeze
 
-  # Configuration keys the specification defines. Everything else belongs to
-  # a transport. DEPLOYMENT_GROUP_KEY is runtime configuration, and nothing
-  # else carries it. CONSUMER_GROUP_KEY is Endpoint and Subscriber metadata;
-  # when it is unset or empty, the runtime's deployment group applies, and
-  # CONSUMER_GROUP_NONE means no group. A Target carries neither.
+  # The configuration key the specification defines. Everything else belongs
+  # to a transport. DEPLOYMENT_GROUP_KEY is runtime configuration, and nothing
+  # else carries it.
   DEPLOYMENT_GROUP_KEY = "deployment_group"
-  CONSUMER_GROUP_KEY = "consumer_group"
+
+  # The Endpoint and Subscriber consumer_group value that requests no group.
   CONSUMER_GROUP_NONE = "none"
 
   # Metadata keys that start with RESERVED_PREFIX belong to transports and
@@ -43,6 +42,13 @@ module ServiceMesh
 
   # Identifies a receiving channel on the mesh. A transport assembles the
   # segments into its own address; that string never leaves the transport.
+  # Metadata holds addressing and the default transport settings for the
+  # target, and never a deployment group or consumer group.
+  #
+  # A transport reads each of its settings from the first of these that has a
+  # value: the per-call options of request or publish, the Endpoint's or
+  # Subscriber's metadata, the Target's metadata, and the transport's own
+  # default.
   Target = Data.define(:segments, :kind, :metadata) do
     def initialize(segments:, kind:, metadata: {})
       raise KindMismatch, "kind must be one of #{KINDS.inspect}, got #{kind.inspect}" unless KINDS.include?(kind)
@@ -73,16 +79,26 @@ module ServiceMesh
   end
 
   # A route target paired with a handler that returns a Message.
-  Endpoint = Data.define(:target, :metadata, :handler) do
-    def initialize(target:, handler:, metadata: {})
-      super(target: target, metadata: metadata.to_h.freeze, handler: handler)
+  #
+  # consumer_group names the logical group the endpoint joins. When it is nil
+  # or empty, the runtime's deployment group applies. CONSUMER_GROUP_NONE means
+  # no group, so every instance handles every message. Any other value names
+  # the group, and one handler in that group handles each message.
+  #
+  # Metadata holds transport settings for the endpoint, which override the
+  # target's.
+  Endpoint = Data.define(:target, :consumer_group, :metadata, :handler) do
+    def initialize(target:, handler:, consumer_group: nil, metadata: {})
+      super(target: target, consumer_group: consumer_group, metadata: metadata.to_h.freeze, handler: handler)
     end
   end
 
   # A topic target paired with a handler whose return value is ignored.
-  Subscriber = Data.define(:target, :metadata, :handler) do
-    def initialize(target:, handler:, metadata: {})
-      super(target: target, metadata: metadata.to_h.freeze, handler: handler)
+  # consumer_group has the same meaning as on Endpoint. Metadata holds
+  # transport settings for the subscriber, which override the target's.
+  Subscriber = Data.define(:target, :consumer_group, :metadata, :handler) do
+    def initialize(target:, handler:, consumer_group: nil, metadata: {})
+      super(target: target, consumer_group: consumer_group, metadata: metadata.to_h.freeze, handler: handler)
     end
   end
 end
