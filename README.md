@@ -26,6 +26,9 @@ Requires Ruby 3.3 or newer. The gem has no runtime dependencies.
 - The configuration keys the specification defines. `DEPLOYMENT_GROUP_KEY` is runtime
   configuration. `CONSUMER_GROUP_KEY`, with the value `CONSUMER_GROUP_NONE`, is `Endpoint` and
   `Subscriber` metadata.
+- The reserved metadata prefix `RESERVED_PREFIX` (`Mesh-`).
+- The metadata keys the specification defines: `HANDLER_ERROR_KEY`, `TIMEOUT_KEY`, `DEADLINE_KEY`,
+  `DELIVERY_ATTEMPT_KEY`, and `MESSAGE_ID_KEY`.
 - The errors defined by the specification as `ServiceMesh::Error`: `ServiceMesh::KindMismatch`,
   `ServiceMesh::InvalidTarget`, and `ServiceMesh::NoDeploymentGroup`.
 - A conformance suite a transport runs against its own `Client` and
@@ -72,6 +75,18 @@ RSpec.describe MyTransport do
   end
 end
 ```
+
+A transport that needs its own settings for the suite to pass supplies any of
+four optional lets, each defaulting to an empty Hash:
+
+```ruby
+let(:endpoint_metadata) { {...} }   # merged under the metadata of every Endpoint the suite builds
+let(:subscriber_metadata) { {...} } # merged under the metadata of every Subscriber the suite builds
+let(:request_options) { {...} }     # the options of every request the suite makes
+let(:publish_options) { {...} }     # the options of every publish the suite makes
+```
+
+Metadata an example sets itself wins over `endpoint_metadata` and `subscriber_metadata`.
 
 The suite covers:
 
