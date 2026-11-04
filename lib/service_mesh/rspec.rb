@@ -142,7 +142,7 @@ RSpec.shared_examples "a service mesh transport" do
     end
 
     it "carries an empty payload with no metadata" do
-      serve(endpoints: [endpoint(route_target, ->(m) { m })])
+      serve(endpoints: [endpoint(route_target, ->(_) { message(route_target) })])
       reply = request(message(route_target))
       expect([reply.payload, reply.metadata]).to eq(["", {}])
     end
